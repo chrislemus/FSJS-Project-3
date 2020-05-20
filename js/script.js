@@ -7,7 +7,7 @@ const paymentField = document.querySelectorAll("#payment-container > DIV");
 const creditCardField = document.getElementById("credit-card");
 const activitiesTotalDOM = document.querySelector(".total-cost");
 const registerForActivitiesContainer = document.querySelector(".activities");
-const inputsToValidate = ["user-name", "user-email"];
+const inputsToValidate = ["user-name", "user-email","user-cc-num", "user-zip", "user-cvv"];
 const paymentValidators = ["user-cc-num", "user-zip", "user-cvv"]; 
 let scheduledActivitiesList = [];
 let costForRegisteredActivities = 0;
@@ -37,9 +37,10 @@ nameInput.focus(); //
 
 displayNone(jobRoleTextInput) //remove "other job" text field.
 hideDependentOptions(shirtColorOptions); //hide shirt color options
-hideDependentOptions(paymentField); //hide payment field
 displayNone(shirtColorDropdownList.parentNode) //hide shirt color container
 
+const paymentSelector = document.getElementById("payment");
+paymentSelector.value = "credit card";
 
 
 //===========================
@@ -131,23 +132,28 @@ form.addEventListener("keyup", e => {
 const textFieldValidators = { 
     userName: [
                 "/^[a-z]+$/", //1. input field regex
-                "make sure field is not empty and use letters only",//2. input field message
+                "use letters only",//2. input field message
+                "make sure field is not empty"
             ],
     userEmail: [
                 "/\\w+\\@\\w+\\.\\w+/", //extra backslash added to each "\" to prevent escape
-                "make sure field is not empty and email is valid"
+                "email is valid",
+                "make sure field is not empty"
             ],
     userCcNum: [
-                "/^[0-9]{13}([0-9]{3})?$/", //extra backslash added to each "\" to prevent escape
-                "must be valid credit card"
+                "/^[0-9]{13}\\d?\\d?\\d?$/", //extra backslash added to each "\" to prevent escape
+                "must be valid credit card",
+                "make sure field is not empty"
             ],
     userZip: [
                 "/^\\d{5}$/", //extra backslash added to each "\" to prevent escape
-                "zip code incorrect"
+                "zip code incorrect",
+                "make sure field is not empty"
             ],
     userCvv: [
                 "/^\\d{3}$/", //extra backslash added to each "\" to prevent escape
-                "must be valid CVV"
+                "must be valid CVV",
+                "make sure field is not empty"
             ]
 }
 
@@ -162,6 +168,7 @@ function validateMyForm() {
     inputsToValidate.forEach(input => { //this will make sure all required inputs are not empty
         let userInput = form.querySelector(`input[name=${input}]`).value
         validateTextField(input, userInput)
+
     });
 
     let formNotValid = form.querySelectorAll(".validation-message"); //this will be our indicator that all required inputs are valid
@@ -179,6 +186,7 @@ function validateTextField(fieldName, userInput) {
         let regex = eval(textFieldValidators[validationName][0]).test(userInput); //regex validation
         let inputField = document.querySelector(`input[name=${fieldName}]`); //input field element
         let errorMessageString = textFieldValidators[validationName][1]; //message to display if input is invalid
+        let errorMessageString2 = textFieldValidators[validationName][2]; //message to display if input is invalid
 
         // if statement below will add class to element, that will make border color "red"
         if (regex) {
@@ -195,6 +203,14 @@ function validateTextField(fieldName, userInput) {
             inputField.insertAdjacentHTML("afterend", `<p class='validation-message'>${errorMessageString}</p>`);
         } else if (!inputInvalid && errorMessageDisplayed) {
             errorMessage.remove()
+        }
+        
+        if (errorMessageDisplayed) {  // this will display a corresponding error message 
+            if ( userInput == "" ) { // empty field message if field is empty
+                errorMessage.innerText = errorMessageString2;
+            } else {  // invalid regex message
+                errorMessage.innerText = errorMessageString;
+            }
         }
     }
 }
