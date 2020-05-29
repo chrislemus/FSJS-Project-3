@@ -136,6 +136,10 @@ option {
 	margin-top: -.6em;
 }
 
+.strikethrough {
+	text-decoration: line-through;
+}
+
 /* ================================= 
   Page Styles
 ==================================== */

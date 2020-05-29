@@ -41,6 +41,7 @@ displayNone(shirtColorDropdownList.parentNode) //hide shirt color container
 
 const paymentSelector = document.getElementById("payment");
 paymentSelector.value = "credit card";
+DisplayCorrespondingOptions("credit card", paymentField)
 
 
 //===========================
@@ -115,7 +116,7 @@ shirtDesignDropdownMenu.addEventListener("change", e => {
 form.addEventListener("keyup", e => {
     if (e.target.tagName == "INPUT") {
         let fieldName = e.target.name;
-        let userInput = e.target.value;
+        let userInput = String(e.target.value);
         validateTextField(fieldName, userInput)
     }
 });
@@ -131,13 +132,13 @@ form.addEventListener("keyup", e => {
 // and for value add array the contains regex THEN error message
 const textFieldValidators = { 
     userName: [
-                "/^[a-z]+$/", //1. input field regex
+                "/^[A-Za-z]+$/", //1. input field regex
                 "use letters only",//2. input field message
                 "make sure field is not empty"
             ],
     userEmail: [
                 "/\\w+\\@\\w+\\.\\w+/", //extra backslash added to each "\" to prevent escape
-                "email is valid",
+                "not valid email",
                 "make sure field is not empty"
             ],
     userCcNum: [
@@ -163,8 +164,8 @@ const textFieldValidators = {
 
 // function has been added to html submit button
 function validateMyForm() {
+    
     validateActivities() // make sure user has selected at least one(1) activity
-
     inputsToValidate.forEach(input => { //this will make sure all required inputs are not empty
         let userInput = form.querySelector(`input[name=${input}]`).value
         validateTextField(input, userInput)
@@ -174,6 +175,7 @@ function validateMyForm() {
     let formNotValid = form.querySelectorAll(".validation-message"); //this will be our indicator that all required inputs are valid
 
     if (formNotValid.length > 0 ) {
+        event.preventDefault();
         return false
     } else {
         return true
@@ -185,8 +187,7 @@ function validateTextField(fieldName, userInput) {
         let validationName = fieldName.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); }) //convert input name to camel case, to call object property name
         let regex = eval(textFieldValidators[validationName][0]).test(userInput); //regex validation
         let inputField = document.querySelector(`input[name=${fieldName}]`); //input field element
-        let errorMessageString = textFieldValidators[validationName][1]; //message to display if input is invalid
-        let errorMessageString2 = textFieldValidators[validationName][2]; //message to display if input is invalid
+        // let errorMessageString2 = textFieldValidators[validationName][2]; //message to display if input is invalid
 
         // if statement below will add class to element, that will make border color "red"
         if (regex) {
@@ -196,22 +197,30 @@ function validateTextField(fieldName, userInput) {
         }
         
         let errorMessage = inputField.nextElementSibling; 
-        let inputInvalid = eval(inputField.classList.contains("invalid-input")); //make sure input is valid
+        let inputInvalid = inputField.classList.contains("invalid-input"); //make sure input is valid
         let errorMessageDisplayed = eval(errorMessage.classList.contains("validation-message")); //to prevent duplicate error message
     
-        if (inputInvalid & !errorMessageDisplayed) {
-            inputField.insertAdjacentHTML("afterend", `<p class='validation-message'>${errorMessageString}</p>`);
-        } else if (!inputInvalid && errorMessageDisplayed) {
+        // if ( userInput === ""  ) { // empty field message if field is empty
+        //     errorMessageString = textFieldValidators[validationName][2];
+        // } else {  // invalid regex message
+        //     errorMessageString = textFieldValidators[validationName][1];
+        // }
+        
+        let errorMessageString = textFieldValidators[validationName][1]; ; //message to display if input is invalid
+        if ( userInput === "" ) { // empty field message if field is empty
+            errorMessageString = textFieldValidators[validationName][2];
+        }
+
+         // makes sure updated error message is displayed
+
+        if (inputInvalid & !errorMessageDisplayed) { // adds error message
+            inputField.insertAdjacentHTML("afterEnd", `<p class='validation-message'>${errorMessageString}</p>`);
+        } else if (!inputInvalid && errorMessageDisplayed) { // removes error message
             errorMessage.remove()
+        } else if (errorMessageDisplayed) { // updates error message
+            errorMessage.innerText = errorMessageString;
         }
         
-        if (errorMessageDisplayed) {  // this will display a corresponding error message 
-            if ( userInput == "" ) { // empty field message if field is empty
-                errorMessage.innerText = errorMessageString2;
-            } else {  // invalid regex message
-                errorMessage.innerText = errorMessageString;
-            }
-        }
     }
 }
 
@@ -261,8 +270,10 @@ function disableConflictingActivities(eventTarget) {
 
             if (notChecked) {
                 checkbox.disabled = true;
+                checkbox.parentNode.classList.add('strikethrough');
             } else {
                 checkbox.disabled = false;
+                checkbox.parentNode.classList.remove('strikethrough');
             }
         }
     });
